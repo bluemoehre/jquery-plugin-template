@@ -138,7 +138,11 @@
 
     };
 
-
+    /*
+        Choose your events for running the auto pilot!
+        If you have a lot of XHR in the background you might remove "ajaxStop" and trigger "DOMContentAdded" manually
+        to improve performance.
+     */
     /**
      * Auto pilot
      * The plugin will bind itself to all elements which contain the plugin data-attribute (e.g. "data-foobar")
@@ -146,7 +150,7 @@
      * else it will search the whole DOM and init on elements which have no instance
      * INFO: DOMContentAdded is no default event and should be triggered manually or replaced with something else!
      */
-    $(doc).on('DOMContentLoaded DOMContentAdded ajaxStop', function(evt, nodes){
+    $(doc).on('ready DOMContentAdded ajaxStop', function(evt, nodes){
         $(nodes || document).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 
