@@ -77,7 +77,7 @@
 
 
         /**
-         * Example: A private function which has access to the instance scope
+         * Example: A private function
          */
         function privateFunction(){
             // Do something here!
@@ -86,7 +86,7 @@
 
 
         /**
-         * A public function which can be called in the following ways:
+         * Example: A public function which can be called from outside:
          * - $('.mySelector').foobar('publicFunction')
          * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
          * @param {Object} [args]
@@ -128,8 +128,7 @@
          * This function should revert all changes which have been made by this plugin
          */
         this.destroy = function(){
-            $el.off('.' + PLUGIN_NAME);
-            $el.find('*').off('.' + PLUGIN_NAME);
+            $el.find('*').addBack().off('.' + PLUGIN_NAME);
             $el.removeData(PLUGIN_NAME);
             $el = null;
         };
@@ -180,20 +179,20 @@
     };
 
 
-    /**
-     * Auto pilot
-     * The plugin will bind itself to all elements which contain the plugin data-attribute (e.g. "data-foobar")
-     * but have no instance.
-     * This happens automatically on "ready" and every time when all AJAX-request have finished ("ajaxStop").
-     * When you add new nodes to the DOM manually you can trigger DOMContentAdded and optionally pass the new nodes as
-     * argument. If you do not pass the nodes the whole DOM is searched.
-     *
-     * Important:
-     *  DOMContentAdded is no default event and can only be triggered manually.
-     *
-     * Info:
-     *  If your plugin does not need to wait for "ready" you should replace "ready" with "DOMContentLoaded"
+    /*
+         The plugin will bind itself to all elements which contain the plugin data-attribute (e.g. "data-foobar")
+         but have no instance.
+         This happens automatically on "ready" and every time when all AJAX-request have finished ("ajaxStop").
+         When you add new nodes to the DOM manually you can trigger DOMContentAdded and optionally pass the new nodes as
+         argument. If you do not pass the nodes the whole DOM is searched.
+         
+         Important:
+          DOMContentAdded is no default event and can only be triggered manually.
+         
+         Info:
+          If your plugin does not need to wait for "ready" you should replace "ready" with "DOMContentLoaded"
      */
+    // Auto pilot
     $(doc).on('ready ajaxStop DOMContentAdded', function(evt, nodes){
         $(nodes || document).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
