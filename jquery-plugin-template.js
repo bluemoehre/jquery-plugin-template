@@ -159,7 +159,7 @@
             }
             // Call public function
             if (instance[args[0]]){
-                instance[args[0]](typeof args[1] == 'object' ? args[0] : {});
+                instance[args[0]](typeof args[1] == 'object' ? args[1] : {});
             }
             /*
                  This part makes it possible to re-initiate the plugin with other options
