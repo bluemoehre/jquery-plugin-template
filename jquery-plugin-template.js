@@ -11,9 +11,9 @@
     // --- Plugin scope (shared between all plugin instances) ---
 
     /*
-        Define the plugin name here!
-        It is also used to find elements via data-attribute selector which are using this plugin (e.g. data-foobar="")
-        It MUST be unique!
+        Define the plugin's name here!
+        The name is used to find elements via data-attribute selector which are using this plugin (e.g. data-foobar="")
+        It MUST be unique in your jQuery-Scope!
     */
     /**
      * The plugin name and data-attribute name/selector
@@ -23,71 +23,109 @@
 
     /*
         Define the plugin defaults here!
+        I like to make everything configurable.
+        Also i like this kind of naming to make the usage very clear:
+        - selectElement: '.mySelector' (pass a selector or an element/jQuery)
+        - tplElement: '<div>__text__</div>' (pass a string or an element/jQuery)
+        - classLoading: 'loading' (when you are changing classes somewhere)
+        - callbackFinished: $.noop (allow to configure a callback somewhere)
     */
     /**
      * The plugin defaults
-     * @type {}
+     * @type {Object}
      */
     var defOpts = {
         propertyName: 'value'
     };
 
-    // ---
+
+    /**
+     * Example: A static-like function without access to the instance scope.
+     */
+    function staticFunction(){
+        // Do something here!
+    }
+
 
 
     /**
      * Plugin constructor
-     * @param el
-     * @param args
+     * @param {HTMLElement} el
      * @constructor
      */
-    function Plugin(el, args)
+    function Plugin(el)
     {
         // --- Instance scope (shared between all plugin functions on the given element) ---
 
+        /**
+         * The element which was passed to the plugin
+         * @type {jQuery}
+         */
         var $el = $(el);
+
+        /**
+         * The plugin settings for this instance
+         * @type {Object}
+         */
         var opts = {};
+
+        /**
+         * Self-reference
+         * @type {Plugin}
+         */
         var self = this;
-
-        /*
-            var privateFunction = function(){
-                // Do something here!
-            };
-        */
-
-        // ---
 
 
         /**
-         * Init function for setting up the given element
-         * The settings for this element will be built in the order:
-         *  - the plugin defaults
-         *  - the given options via call
-         *  - the element options via attribute
-         *  (latest takes precedence)
-         *
-         * @param args
+         * Example: A private function which has access to the instance scope
          */
-        this.init = function(args){
+        function privateFunction(){
+            // Do something here!
+        }
 
-            var attrOptStr = $el.attr('data-'+ PLUGIN_NAME);
-            var attrOpts = attrOptStr ? $.parseJSON(attrOptStr) : {};
-            opts = $.extend(opts, args, attrOpts);
 
-            /*
-                // Use private function
-                privateFunction();
 
-                // Bind events
-                $el.on('click.' + PLUGIN_NAME, function(){
-                    // Use public function
-                    self.publicFunction();
-                });
-            */
+        /**
+         * A public function which can be called in the following ways:
+         * - $('.mySelector').foobar('publicFunction')
+         * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
+         * @param {Object} [args]
+         */
+        this.publicFunction = function(args){
+            // Do something here
         };
 
         /**
-         * Destroy function to remove this plugin off the element
+         * Init function for setting up this instance
+         * The settings are cascaded in the following order:
+         *  - the plugin defaults
+         *  - the given options via jQuery-call
+         *  - the element options via attribute
+         *  (latest takes precedence)
+         *
+         * @param {Object} initOpts
+         */
+        this.init = function(initOpts){
+
+            var attrOptStr = $el.attr('data-'+ PLUGIN_NAME);
+            var attrOpts = attrOptStr ? $.parseJSON(attrOptStr) : {};
+            opts = $.extend(opts, defOpts, initOpts, attrOpts);
+
+            // Example: Use a private function
+            privateFunction();
+
+            // Example: Bind events
+            $el.on('click.' + PLUGIN_NAME, function(){
+                // Example: Use static function
+                staticFunction();
+                // Example: Use public function
+                self.publicFunction();
+            });
+        };
+
+        /**
+         * Remove this plugin off the element
+         * This function should revert all changes which have been made by this plugin
          */
         this.destroy = function(){
             $el.off('.' + PLUGIN_NAME);
@@ -97,43 +135,46 @@
         };
 
         /**
-         * Returns the result of merging current settings with given settings
-         * @todo what was this for? %)
-         * @param args
+         * Returns the current settings of this instance or the result of merging current settings with given settings
+         * @param {Object} [args]
          */
         this.getOpts = function(args){
             opts = $.extend(opts, args);
-        }
+        };
 
-        /*
-            this.publicFunction = function(){
-                // Do something here
-            };
-        */
-
-        this.init(defOpts);
     }
 
 
-    // Bind plugin to jQuery
+    // Register plugin on jQuery
     $.fn[PLUGIN_NAME] = function(){
         var args = arguments;
 
         return this.each(function(){
 
-            // prevent multiple instances for same element
+            // Prevent multiple instances for same element
             var instance = $.data(this, PLUGIN_NAME);
             if (!instance){
                 instance = new Plugin(this);
                 $.data(this, PLUGIN_NAME, instance);
+                instance.init(typeof args[0] == 'object' ? args[0] : {});
             }
+            // Call public function
             if (instance[args[0]]){
-                instance[args[0]](args[1]);
-            } else if (typeof args[0] == 'object'){
-                instance.init(args[0]);
-            } else if (args[0]) {
+                instance[args[0]](typeof args[1] == 'object' ? args[0] : {});
+            }
+            /*
+                 This part makes it possible to re-initiate the plugin with other options
+                 To use this possibility your init function must take care about double binding events etc.
+                 Most people will not need this functionality.
+             */
+            // Re-initiate plugin
+            // else if (typeof args[0] == 'object'){
+            //     instance.init(args[0]);
+            // }
+            else if (args[0]) {
                 $.error("Method '" + args[0] + "' doesn't exist for " + PLUGIN_NAME + " plugin");
             }
+
         });
 
     };
@@ -142,13 +183,24 @@
     /**
      * Auto pilot
      * The plugin will bind itself to all elements which contain the plugin data-attribute (e.g. "data-foobar")
-     * When new nodes are added to the DOM it will try to use only the new nodes (must be passed as argument)
-     * else it will search the whole DOM and init on elements which have no instance
-     * INFO: DOMContentAdded is no default event and should be triggered manually or replaced with something else!
+     * but have no instance.
+     * This happens automatically on "ready" and every time when all AJAX-request have finished ("ajaxStop").
+     * When you add new nodes to the DOM manually you can trigger DOMContentAdded and optionally pass the new nodes as
+     * argument. If you do not pass the nodes the whole DOM is searched.
+     *
+     * Important:
+     *  DOMContentAdded is no default event and can only be triggered manually.
+     *
+     * Info:
+     *  If your plugin does not need to wait for "ready" you should replace "ready" with "DOMContentLoaded"
      */
-    $(doc).on('DOMContentLoaded DOMContentAdded ajaxStop', function(evt, nodes){
+    $(doc).on('ready ajaxStop DOMContentAdded', function(evt, nodes){
         $(nodes || document).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 
 
+/*
+    The dependencies which are imported to the plugin wrapper.
+    You should add other plugins etc. here to trigger an error if they are missing
+ */
 })(jQuery, window, document);
