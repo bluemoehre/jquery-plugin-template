@@ -170,7 +170,7 @@
             // else if (typeof args[0] == 'object'){
             //     instance.init(args[0]);
             // }
-            else if (args[0]) {
+            else if (typeof args[0] == 'string') {
                 $.error("Method '" + args[0] + "' doesn't exist for " + PLUGIN_NAME + " plugin");
             }
 
