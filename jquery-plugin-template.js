@@ -188,9 +188,6 @@
          
          Important:
           DOMContentAdded is no default event and can only be triggered manually.
-         
-         Info:
-          If your plugin does not need to wait for "ready" you should replace "ready" with "DOMContentLoaded"
      */
     // Auto pilot
     $(doc).on('ready ajaxStop DOMContentAdded', function(evt, nodes){
