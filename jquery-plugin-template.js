@@ -157,7 +157,7 @@
 
             // Call public function
             // If it returns something, break the loop and return the value
-            else if (typeof args[0] == 'string' && typeof instance[args[0]] == 'function' && args[0] != 'init'){
+            if (typeof args[0] == 'string' && typeof instance[args[0]] == 'function'){
                 ret = instance[args[0]](args[1]);
                 return typeof ret != 'undefined' ? false : ret = $this;
             }
