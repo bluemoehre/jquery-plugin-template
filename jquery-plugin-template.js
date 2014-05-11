@@ -51,9 +51,10 @@
     /**
      * Plugin constructor
      * @param {HTMLElement} el
+     * @param {Array} args
      * @constructor
      */
-    function Plugin(el)
+    function Plugin(el, args)
     {
         // --- Instance scope (shared between all plugin functions on the given element) ---
 
@@ -77,25 +78,6 @@
 
 
         /**
-         * Example: A private function
-         */
-        function privateFunction(){
-            // Do something here!
-        }
-
-
-
-        /**
-         * Example: A public function which can be called from outside:
-         * - $('.mySelector').foobar('publicFunction')
-         * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
-         * @param {Object} [args]
-         */
-        this.publicFunction = function(args){
-            // Do something here
-        };
-
-        /**
          * Init function for setting up this instance
          * The settings are cascaded in the following order:
          *  - the plugin defaults
@@ -105,7 +87,7 @@
          *
          * @param {Object} initOpts
          */
-        this.init = function(initOpts){
+        function init(initOpts){
 
             var attrOptStr = $el.attr('data-'+ PLUGIN_NAME);
             var attrOpts = attrOptStr ? $.parseJSON(attrOptStr) : {};
@@ -121,6 +103,26 @@
                 // Example: Use public function
                 self.publicFunction();
             });
+        }
+
+        /**
+         * Example: A private function
+         */
+        function privateFunction(){
+            // Do something here!
+        }
+
+
+        /**
+         * Example: A public function which can be called from outside:
+         * - $('.mySelector').foobar('publicFunction')
+         * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
+         * @param {Object} [args]
+         */
+        this.publicFunction = function(args){
+            // Do something here
+
+            // If you return something, the plugin call with this function will not be chainable by jQuery
         };
 
         /**
@@ -133,49 +135,40 @@
             $el = null;
         };
 
-        /**
-         * Returns the current settings of this instance or the result of merging current settings with given settings
-         * @param {Object} [args]
-         */
-        this.getOpts = function(args){
-            opts = $.extend(opts, args);
-        };
 
+        init(args);
     }
 
 
     // Register plugin on jQuery
     $.fn[PLUGIN_NAME] = function(){
         var args = arguments;
+        var $this = this;
+        var ret = $this;
 
-        return this.each(function(){
+        this.each(function(){
 
             // Prevent multiple instances for same element
             var instance = $.data(this, PLUGIN_NAME);
             if (!instance){
-                instance = new Plugin(this);
+                instance = new Plugin(this, typeof args[0] == 'object' ? args[0] : {});
                 $.data(this, PLUGIN_NAME, instance);
-                instance.init(typeof args[0] == 'object' ? args[0] : {});
             }
+
             // Call public function
-            if (instance[args[0]]){
-                instance[args[0]](typeof args[1] == 'object' ? args[1] : {});
+            // If it returns something, break the loop and return the value
+            else if (typeof args[0] == 'string' && typeof instance[args[0]] == 'function' && args[0] != 'init'){
+                ret = instance[args[0]](args[1]);
+                return typeof ret != 'undefined' ? false : ret = $this;
             }
-            /*
-                 This part makes it possible to re-initiate the plugin with other options
-                 To use this possibility your init function must take care about double binding events etc.
-                 Most people will not need this functionality.
-             */
-            // Re-initiate plugin
-            // else if (typeof args[0] == 'object'){
-            //     instance.init(args[0]);
-            // }
-            else if (typeof args[0] == 'string') {
+
+            else {
                 $.error("Method '" + args[0] + "' doesn't exist for " + PLUGIN_NAME + " plugin");
             }
 
         });
 
+        return ret;
     };
 
 
