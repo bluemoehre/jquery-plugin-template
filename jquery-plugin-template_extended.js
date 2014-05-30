@@ -90,6 +90,18 @@
         }
         return html;
     }
+    
+    /**
+     * Returns a template's HTML as string.
+     * Templates can be specified by jQuery-Selector or HTML-String.
+     * HTML-Strings will passed through, script templates will be unwrapped, normal elements will be converted to string.
+     * @param {string} tpl
+     * @returns {string}
+     */
+    function getTemplate(tpl){
+        var $tpl = $(tpl);
+        return $tpl[0][$tpl.is('script[type="text/template"]') ? 'innerHTML' : 'outerHTML'];
+    }
 
     /**
      * Example: A static-like function without access to the instance scope.
