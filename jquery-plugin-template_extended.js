@@ -82,11 +82,17 @@
      * Returns the given string where all placeholders have been replaced with the given data
      * @param {string} html
      * @param {Object} data
+     * @param {Boolean} [escape=true]
      * @returns {string}
      */
-    function replacePlaceholders(html, data){
-        for (var placeholder in data){
-            html = html.replace('__'+ placeholder +'__', htmlEncode(data[placeholder]));
+    function replacePlaceholders(html, data, escape){
+        var placeholder;
+        var replacement;
+        escape = escape !== false;
+        for (placeholder in data){
+            placeholder = placeholder.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"); // escape regex special characters
+            replacement = escape ? htmlEncode(data[placeholder]) : data[placeholder];
+            html = html.replace(new RegExp('__'+ placeholder +'__', 'g'), replacement);
         }
         return html;
     }
