@@ -4,7 +4,7 @@
  * @copyright 2014 BlueMöhre
  * @link http://www.github.com/bluemoehre
  */
-(function($, win, doc) {
+(function ($, win, doc) {
 
     'use strict';
 
@@ -45,8 +45,8 @@
      * @param {jQuery} $el
      * @param {string} attr
      */
-    function saveAttrOnce($el, attr){
-        if ($el.data('_' + attr) === undefined){
+    function saveAttrOnce($el, attr) {
+        if ($el.data('_' + attr) === undefined) {
             var val = $el.attr(attr);
             $el.data('_' + attr, val !== undefined ? val : false);
         }
@@ -58,10 +58,10 @@
      * @param {jQuery} $el
      * @param {string} attr
      */
-    function restoreAttr($el, attr){
+    function restoreAttr($el, attr) {
         var val = $el.data('_' + attr);
-        if (val !== undefined){
-            if (val === false){
+        if (val !== undefined) {
+            if (val === false) {
                 $el.removeAttr(attr);
             } else {
                 $el.attr(attr, val);
@@ -74,7 +74,7 @@
      * @param {string} text
      * @returns {string}
      */
-    function htmlEncode(text){
+    function htmlEncode(text) {
         return document.createElement('div').appendChild(document.createTextNode(text)).parentNode.innerHTML;
     }
 
@@ -85,18 +85,20 @@
      * @param {Boolean} [escape=true]
      * @returns {string}
      */
-    function replacePlaceholders(html, data, escape){
+    function replacePlaceholders(html, data, escape) {
         var placeholder;
         var replacement;
         escape = escape !== false;
-        for (placeholder in data){
-            placeholder = placeholder.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"); // escape regex special characters
-            replacement = escape ? htmlEncode(data[placeholder]) : data[placeholder];
-            html = html.replace(new RegExp('__'+ placeholder +'__', 'g'), replacement);
+        for (placeholder in data) {
+            if (data.hasOwnProperty(placeholder)) {
+                placeholder = placeholder.replace(/([.*+?\^=!:${}()|\[\]\/\\])/g, "\\$1"); // escape regex special characters
+                replacement = escape ? htmlEncode(data[placeholder]) : data[placeholder];
+                html = html.replace(new RegExp('__' + placeholder + '__', 'g'), replacement);
+            }
         }
         return html;
     }
-    
+
     /**
      * Returns a template's HTML as string.
      * Templates can be specified by jQuery-Selector or HTML-String.
@@ -104,7 +106,7 @@
      * @param {string} tpl
      * @returns {string}
      */
-    function getTemplate(tpl){
+    function getTemplate(tpl) {
         var $tpl = $(tpl);
         return $tpl[0][$tpl.is('script[type="text/template"]') ? 'innerHTML' : 'outerHTML'];
     }
@@ -112,7 +114,7 @@
     /**
      * Example: A static-like function without access to the instance scope.
      */
-    function staticFunction(){
+    function staticFunction() {
         // Do something here!
     }
 
@@ -124,8 +126,8 @@
      * @param {Array} args
      * @constructor
      */
-    function Plugin(el, args)
-    {
+    function Plugin(el, args) {
+
         // --- Instance scope (shared between all plugin functions on the given element) ---
 
         /**
@@ -157,9 +159,8 @@
          *
          * @param {Object} initOpts
          */
-        function init(initOpts){
-
-            var attrOptStr = $el.attr('data-'+ PLUGIN_NAME);
+        function init(initOpts) {
+            var attrOptStr = $el.attr('data-' + PLUGIN_NAME);
             var attrOpts = attrOptStr ? $.parseJSON(attrOptStr) : {};
             opts = $.extend(opts, defOpts, initOpts, attrOpts);
 
@@ -167,7 +168,7 @@
             privateFunction();
 
             // Example: Bind events
-            $el.on('click.' + PLUGIN_NAME, function(){
+            $el.on('click.' + PLUGIN_NAME, function () {
                 // Example: Use static function
                 staticFunction();
                 // Example: Use public function
@@ -178,7 +179,7 @@
         /**
          * Example: A private function
          */
-        function privateFunction(){
+        function privateFunction() {
             // Do something here!
         }
 
@@ -189,7 +190,7 @@
          * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
          * @param {Object} [args]
          */
-        this.publicFunction = function(args){
+        this.publicFunction = function (args) {
             // Do something here
 
             // If you return something, the plugin call with this function will not be chainable by jQuery
@@ -199,7 +200,7 @@
          * Remove this plugin off the element
          * This function should revert all changes which have been made by this plugin
          */
-        this.destroy = function(){
+        this.destroy = function () {
             $el.find('*').addBack().off('.' + PLUGIN_NAME);
             $el.removeData(PLUGIN_NAME);
             $el = null;
@@ -211,34 +212,33 @@
 
 
     // Register plugin on jQuery
-    $.fn[PLUGIN_NAME] = function(){
-        var args = arguments;
-        var $this = this;
-        var ret = $this;
+    $.fn[PLUGIN_NAME] = function () {
+        var args = arguments || [];
+        var val;
 
-        this.each(function(){
+        this.each(function () {
 
             // Prevent multiple instances for same element
             var instance = $.data(this, PLUGIN_NAME);
-            if (!instance){
-                instance = new Plugin(this, typeof args[0] == 'object' ? args[0] : {});
+            if (!instance) {
+                instance = new Plugin(this, typeof args[0] === 'object' ? args[0] : {});
                 $.data(this, PLUGIN_NAME, instance);
             }
 
             // Call public function
             // If it returns something, break the loop and return the value
-            if (typeof args[0] == 'string' && typeof instance[args[0]] == 'function'){
-                ret = instance[args[0]](args[1]);
-                return typeof ret != 'undefined' ? false : ret = $this;
+            if (typeof args[0] === 'string') {
+                if (typeof instance[args[0]] === 'function') {
+                    val = instance[args[0]](args[1]);
+                } else {
+                    $.error('Method "' + args[0] + '" does not exist for ' + PLUGIN_NAME + ' plugin');
+                }
             }
 
-            else {
-                $.error("Method '" + args[0] + "' doesn't exist for " + PLUGIN_NAME + " plugin");
-            }
-
+            return val === undefined;
         });
 
-        return ret;
+        return val === undefined ? this : val;
     };
 
 
@@ -253,7 +253,7 @@
           DOMContentAdded is no default event and can only be triggered manually.
      */
     // Auto pilot
-    $(doc).on('ready ajaxStop DOMContentAdded', function(evt, nodes){
+    $(doc).on('ready ajaxStop DOMContentAdded', function (evt, nodes) {
         $(nodes || doc).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 

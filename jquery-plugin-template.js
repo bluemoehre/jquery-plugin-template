@@ -4,7 +4,7 @@
  * @copyright 2014 BlueMöhre
  * @link http://www.github.com/bluemoehre
  */
-(function($, win, doc) {
+(function ($, win, doc) {
 
     'use strict';
 
@@ -42,7 +42,7 @@
     /**
      * Example: A static-like function without access to the instance scope.
      */
-    function staticFunction(){
+    function staticFunction() {
         // Do something here!
     }
 
@@ -54,8 +54,8 @@
      * @param {Array} args
      * @constructor
      */
-    function Plugin(el, args)
-    {
+    function Plugin(el, args) {
+
         // --- Instance scope (shared between all plugin functions on the given element) ---
 
         /**
@@ -87,9 +87,8 @@
          *
          * @param {Object} initOpts
          */
-        function init(initOpts){
-
-            var attrOptStr = $el.attr('data-'+ PLUGIN_NAME);
+        function init(initOpts) {
+            var attrOptStr = $el.attr('data-' + PLUGIN_NAME);
             var attrOpts = attrOptStr ? $.parseJSON(attrOptStr) : {};
             opts = $.extend(opts, defOpts, initOpts, attrOpts);
 
@@ -97,7 +96,7 @@
             privateFunction();
 
             // Example: Bind events
-            $el.on('click.' + PLUGIN_NAME, function(){
+            $el.on('click.' + PLUGIN_NAME, function () {
                 // Example: Use static function
                 staticFunction();
                 // Example: Use public function
@@ -108,7 +107,7 @@
         /**
          * Example: A private function
          */
-        function privateFunction(){
+        function privateFunction() {
             // Do something here!
         }
 
@@ -119,7 +118,7 @@
          * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
          * @param {Object} [args]
          */
-        this.publicFunction = function(args){
+        this.publicFunction = function (args) {
             // Do something here
 
             // If you return something, the plugin call with this function will not be chainable by jQuery
@@ -129,7 +128,7 @@
          * Remove this plugin off the element
          * This function should revert all changes which have been made by this plugin
          */
-        this.destroy = function(){
+        this.destroy = function () {
             $el.find('*').addBack().off('.' + PLUGIN_NAME);
             $el.removeData(PLUGIN_NAME);
             $el = null;
@@ -141,34 +140,33 @@
 
 
     // Register plugin on jQuery
-    $.fn[PLUGIN_NAME] = function(){
-        var args = arguments;
-        var $this = this;
-        var ret = $this;
+    $.fn[PLUGIN_NAME] = function () {
+        var args = arguments || [];
+        var val;
 
-        this.each(function(){
+        this.each(function () {
 
             // Prevent multiple instances for same element
             var instance = $.data(this, PLUGIN_NAME);
-            if (!instance){
-                instance = new Plugin(this, typeof args[0] == 'object' ? args[0] : {});
+            if (!instance) {
+                instance = new Plugin(this, typeof args[0] === 'object' ? args[0] : {});
                 $.data(this, PLUGIN_NAME, instance);
             }
 
             // Call public function
             // If it returns something, break the loop and return the value
-            if (typeof args[0] == 'string' && typeof instance[args[0]] == 'function'){
-                ret = instance[args[0]](args[1]);
-                return typeof ret != 'undefined' ? false : ret = $this;
+            if (typeof args[0] === 'string') {
+                if (typeof instance[args[0]] === 'function') {
+                    val = instance[args[0]](args[1]);
+                } else {
+                    $.error('Method "' + args[0] + '" does not exist for ' + PLUGIN_NAME + ' plugin');
+                }
             }
 
-            else {
-                $.error("Method '" + args[0] + "' doesn't exist for " + PLUGIN_NAME + " plugin");
-            }
-
+            return val === undefined;
         });
 
-        return ret;
+        return val === undefined ? this : val;
     };
 
 
@@ -183,7 +181,7 @@
           DOMContentAdded is no default event and can only be triggered manually.
      */
     // Auto pilot
-    $(doc).on('ready ajaxStop DOMContentAdded', function(evt, nodes){
+    $(doc).on('ready ajaxStop DOMContentAdded', function (evt, nodes) {
         $(nodes || doc).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 
