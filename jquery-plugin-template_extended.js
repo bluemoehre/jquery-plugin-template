@@ -77,11 +77,22 @@
 
     /**
      * Returns a HTML escaped string
-     * @param {string} text
+     * @param {string} HTML
      * @returns {string}
      */
-    function htmlEncode(text) {
-        return document.createElement('div').appendChild(document.createTextNode(text)).parentNode.innerHTML;
+    function htmlEncode(html) {
+        return document.createElement('div').appendChild(document.createTextNode(html)).parentNode.innerHTML;
+    }
+
+    /**
+     * Returns a HTML string
+     * @param {string} encoded HTML
+     * @returns {string}
+     */
+    function htmlDecode(str){
+        var el = document.createElement('div');
+        el.innerHTML = str;
+        return el.childNodes.length === 0 ? '' : el.childNodes[0].nodeValue;
     }
 
     /**
@@ -108,7 +119,7 @@
     /**
      * Returns a template's HTML as string.
      * Templates can be specified by jQuery-Selector or HTML-String.
-     * HTML-Strings will passed through, script templates will be unwrapped, normal elements will be converted to string.
+     * HTML-Strings will passed through, script templates will be unwrapped and HTML decoded if necessary, normal elements will be converted to string.
      * @param {string} tpl
      * @returns {string}
      */
@@ -117,7 +128,8 @@
         if (!$tpl.length){
             throw 'Missing a required element: "'+ tpl +'"';
         }
-        return $tpl[0][$tpl.is('script[type="text/template"]') ? 'innerHTML' : 'outerHTML'];
+        var html = $tpl[0][$tpl.is('script[type^="text/template"]') ? 'innerHTML' : 'outerHTML'];
+        return $tpl.is('script[type="text/template.html-encoded"]') ? htmlDecode(html) : html;
     }
 
     /**
