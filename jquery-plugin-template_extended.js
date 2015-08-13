@@ -17,6 +17,7 @@
     */
     /**
      * The plugin name and data-attribute name/selector
+     * WARNING: THIS WILL OVERWRITE NATIVE AND PREVIOUSLY REGISTERED JQUERY FUNCTIONS - CHOOSE WITH CARE!
      * @type {!string}
      */
     var PLUGIN_NAME = 'foobar';
@@ -37,6 +38,11 @@
     var defOpts = {
         propertyName: 'value'
     };
+
+    /**
+     * @type {!jQuery}
+     */
+    var $doc = $(doc);
 
 
     /**
@@ -82,6 +88,17 @@
     }
 
     /**
+     * Returns a HTML string
+     * @param {string} encoded HTML
+     * @returns {string}
+     */
+    function htmlDecode(str){
+        var el = doc.createElement('div');
+        el.innerHTML = str;
+        return el.childNodes.length === 0 ? '' : el.childNodes[0].nodeValue;
+    }
+
+    /**
      * Returns the given string where all placeholders have been replaced with the given data
      *
      * @param {string} html
@@ -105,14 +122,31 @@
 
     /**
      * Returns a template's HTML as string.
-     * Template tags and script templates will be unwrapped, normal elements will be converted to string.
-     *
-     * @param {string} tplId
-     * @returns {string|null}
+     * Templates can be specified by jQuery-Selector.
+     * HTML-Strings will passed through, script templates will be unwrapped and HTML decoded if necessary, normal elements will be converted to string.
+     * 
+     * @param {string} tpl
+     * @returns {(string|null)}
      */
-    function getTemplate(tplId) {
-        var tpl = doc.getElementById(tplId);
-        return tpl ? (tpl.tagName === 'TEMPLATE' || (tpl.tagName === 'SCRIPT' && tpl.getAttribute('type') === 'text/template') ? tpl.innerHTML : tpl.outerHTML) : null;
+    function getTemplate(tpl) {
+        tpl = $(tpl)[0];
+        if (tpl){
+            switch (tpl.tagName) {
+                case 'TEMPLATE':
+                    return tpl.innerHTML;
+                case 'SCRIPT':
+                    switch (tpl.getAttribute('type')) {
+                        case 'text/template.html-encoded':
+                            return htmlDecode(tpl.innerHTML);
+                        case 'text/template':
+                            return tpl.innerHTML;
+                    }
+                    break;
+                default:
+                    return tpl.outerHTML;
+            } 
+        }
+        return null;
     }
 
     /**
@@ -219,7 +253,7 @@
     // Register plugin on jQuery
     $.fn[PLUGIN_NAME] = function () {
         var args = arguments || [];
-        var val;
+        var val = undefined;
 
         this.each(function () {
 
@@ -246,6 +280,31 @@
         return val === undefined ? this : val;
     };
 
+    /*
+        The setup function will allow you to setup the plugin's defaults without any code changes on the plugin itself.
+        This will make it easier to update the plugin. Mostly you will be fine with replacing this file.
+        You can call the setup function inline or within another JavaScript using a config object:
+            $.<PLUGIN_NAME>(<CONFIG_OBJECT>)
+            e.g.:
+                $.foobar({ propertyName: 'value' });
+     */
+    // Register directly to jQuery to give the possibility of overwriting the default options
+    $[PLUGIN_NAME] = function (opts) {
+        if (typeof opts === 'object') {
+            $.extend(defOpts, opts);
+        } else {
+            $.error('Expected configuration object');
+        }
+    };
+
+    /*
+        Another way to "remotely" configure this plugin will be using a global config object.
+        Ensure the global object is present when this plugin is loaded.
+     */
+    // Try using a global config object
+    try {
+        $.extend(defOpts, win.config[PLUGIN_NAME]);
+    } catch (e) {}
 
     /*
          The plugin will bind itself to all elements which contain the plugin data-attribute (e.g. "data-foobar")
@@ -253,13 +312,13 @@
          This happens automatically on "ready" and every time when all AJAX-request have finished ("ajaxStop").
          When you add new nodes to the DOM manually you can trigger DOMContentAdded and optionally pass the new nodes as
          argument. If you do not pass the nodes the whole DOM is searched.
-         
+
          Important:
           DOMContentAdded is no default event and can only be triggered manually.
      */
     // Auto pilot
-    $(doc).on('ready ajaxStop DOMContentAdded', function (evt, nodes) {
-        $(nodes || doc).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
+    $doc.on('ready ajaxStop DOMContentAdded', function (evt, nodes) {
+        (nodes ? $(nodes) : $doc).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 
 
