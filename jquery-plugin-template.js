@@ -17,7 +17,7 @@
     */
     /**
      * The plugin name and data-attribute name/selector
-     * @type {string}
+     * @type {!string}
      */
     var PLUGIN_NAME = 'foobar';
 
@@ -32,7 +32,7 @@
     */
     /**
      * The plugin defaults
-     * @type {Object}
+     * @type {!Object}
      */
     var defOpts = {
         propertyName: 'value'
@@ -60,19 +60,19 @@
 
         /**
          * The element which was passed to the plugin
-         * @type {jQuery}
+         * @type {?jQuery}
          */
         var $el = $(el);
 
         /**
          * The plugin settings for this instance
-         * @type {Object}
+         * @type {!Object}
          */
         var opts = {};
 
         /**
          * Self-reference
-         * @type {Plugin}
+         * @type {!Plugin}
          */
         var self = this;
 
@@ -116,6 +116,7 @@
          * Example: A public function which can be called from outside:
          * - $('.mySelector').foobar('publicFunction')
          * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
+         *
          * @param {Object} [args]
          */
         this.publicFunction = function (args) {

@@ -17,7 +17,7 @@
     */
     /**
      * The plugin name and data-attribute name/selector
-     * @type {string}
+     * @type {!string}
      */
     var PLUGIN_NAME = 'foobar';
 
@@ -32,7 +32,7 @@
     */
     /**
      * The plugin defaults
-     * @type {Object}
+     * @type {!Object}
      */
     var defOpts = {
         propertyName: 'value'
@@ -42,6 +42,7 @@
     /**
      * Saves the current value of an element's attribute (e.g. style or class)
      * If attribute is not present FALSE will be saved
+     *
      * @param {jQuery} $el
      * @param {string} attr
      */
@@ -55,6 +56,7 @@
     /**
      * Restores the latest saved attribute value of an element (e.g. style or class)
      * If attribute was not present it will be removed
+     *
      * @param {jQuery} $el
      * @param {string} attr
      */
@@ -71,15 +73,17 @@
 
     /**
      * Returns a HTML escaped string
+     *
      * @param {string} text
      * @returns {string}
      */
     function htmlEncode(text) {
-        return document.createElement('div').appendChild(document.createTextNode(text)).parentNode.innerHTML;
+        return doc.createElement('div').appendChild(doc.createTextNode(text)).parentNode.innerHTML;
     }
 
     /**
      * Returns the given string where all placeholders have been replaced with the given data
+     *
      * @param {string} html
      * @param {Object} data
      * @param {Boolean} [escape=true]
@@ -101,14 +105,14 @@
 
     /**
      * Returns a template's HTML as string.
-     * Templates can be specified by jQuery-Selector or HTML-String.
-     * HTML-Strings will passed through, script templates will be unwrapped, normal elements will be converted to string.
-     * @param {string} tpl
-     * @returns {string}
+     * Template tags and script templates will be unwrapped, normal elements will be converted to string.
+     *
+     * @param {string} tplId
+     * @returns {string|null}
      */
-    function getTemplate(tpl) {
-        var $tpl = $(tpl);
-        return $tpl[0][$tpl.is('script[type="text/template"]') ? 'innerHTML' : 'outerHTML'];
+    function getTemplate(tplId) {
+        var tpl = doc.getElementById(tplId);
+        return tpl ? (tpl.tagName === 'TEMPLATE' || (tpl.tagName === 'SCRIPT' && tpl.getAttribute('type') === 'text/template') ? tpl.innerHTML : tpl.outerHTML) : null;
     }
 
     /**
@@ -132,19 +136,19 @@
 
         /**
          * The element which was passed to the plugin
-         * @type {jQuery}
+         * @type {?jQuery}
          */
         var $el = $(el);
 
         /**
          * The plugin settings for this instance
-         * @type {Object}
+         * @type {!Object}
          */
         var opts = {};
 
         /**
          * Self-reference
-         * @type {Plugin}
+         * @type {!Plugin}
          */
         var self = this;
 
@@ -188,6 +192,7 @@
          * Example: A public function which can be called from outside:
          * - $('.mySelector').foobar('publicFunction')
          * - $('.mySelector').foobar('publicFunction', {optional: 'additionalParameter'})
+         *
          * @param {Object} [args]
          */
         this.publicFunction = function (args) {
