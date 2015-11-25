@@ -125,7 +125,7 @@
      * Templates can be specified by jQuery-Selector.
      * HTML-Strings will passed through, script templates will be unwrapped and HTML decoded if necessary, normal elements will be converted to string.
      * 
-     * @param {string} tpl
+     * @param {(string|HTMLElement)} tpl
      * @returns {(string|null)}
      */
     function getTemplate(tpl) {
