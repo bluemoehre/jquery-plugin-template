@@ -57,7 +57,7 @@
     /**
      * Plugin constructor
      * @param {HTMLElement} el
-     * @param {Array} args
+     * @param {Object} args
      * @constructor
      */
     function Plugin(el, args) {
