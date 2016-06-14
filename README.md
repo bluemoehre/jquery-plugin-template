@@ -9,7 +9,5 @@ The extended version contains additional helper functions which you may like.
 TODO
 --------
 - modify auto pilot to use class selectors, since attribute selectors are much slower
-- remove ajaxStop & DOMContentAdded EventListeners
-- use MutationObersers to find newly added elements based upon initial selector
 - Implement i18n with examples
 - Build a factory version. Functions which are the same in all plugins can be moved there for inheritance. This will reduce the total amount of code.

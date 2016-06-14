@@ -1,7 +1,7 @@
 /**
  * @license MIT
  * @author BlueMöhre <bluemoehre@gmx.de>
- * @copyright 2014 BlueMöhre
+ * @copyright 2014-2016 BlueMöhre
  * @link http://www.github.com/bluemoehre
  */
 (function ($, win, doc) {
@@ -128,7 +128,7 @@
         this.publicFunction = function (args) {
             // Do something here
 
-            // If you return something, the plugin call with this function will not be chainable by jQuery
+            // If you return something, a plugin call to this function will not be chainable by jQuery
         };
 
         /**
@@ -149,7 +149,7 @@
     // Register plugin on jQuery
     $.fn[PLUGIN_NAME] = function () {
         var args = arguments || [];
-        var val = undefined;
+        var val;
 
         this.each(function () {
 
@@ -200,21 +200,26 @@
     // Try using a global config object
     try {
         $.extend(defOpts, win.config[PLUGIN_NAME]);
-    } catch (e) {}
+    } catch (e) {
+    }
 
     /*
-         The plugin will bind itself to all elements which contain the plugin data-attribute (e.g. "data-foobar")
-         but have no instance.
-         This happens automatically on "ready" and every time when all AJAX-request have finished ("ajaxStop").
-         When you add new nodes to the DOM manually you can trigger DOMContentAdded and optionally pass the new nodes as
-         argument. If you do not pass the nodes the whole DOM is searched.
-
-         Important:
-          DOMContentAdded is no default event and can only be triggered manually.
+         The plugin will bind itself to all elements which contain the plugin data-attribute (e.g. "data-foobar").
+         This happens automatically when document is "ready" and every time when nodes get attached to the DOM.
      */
     // Auto pilot
-    $doc.on('ready ajaxStop DOMContentAdded', function (evt, nodes) {
-        (nodes ? $(nodes) : $doc).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
+    new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            for (var i = 0; i < mutation.addedNodes.length; i++) {
+                $(mutation.addedNodes[i]).find('[data-' + PLUGIN_NAME + ']').addBack('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
+            }
+        });
+    }).observe(document.querySelector('body'), {
+        childList: true,
+        subtree: true
+    });
+    $doc.on('ready', function () {
+        $doc.find('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 
 
