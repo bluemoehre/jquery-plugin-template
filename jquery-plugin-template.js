@@ -4,7 +4,30 @@
  * @copyright 2014-2016 BlueMöhre
  * @link http://www.github.com/bluemoehre
  */
-(function ($, win, doc) {
+
+
+// Universal Module Definition (UMD) for compatibility with modular script loaders
+(function (factory) {
+
+    'use strict';
+
+    // Asynchronous Module Definition (AMD) to register plugin as an anonymous module
+    if (typeof define === 'function' && define.amd) {
+        define(['jquery'], factory);
+    }
+
+    // Default way to register plugin with an existing, global jQuery object
+    else {
+        /*
+            Factory's arguments are the dependencies which are required by the plugin.
+            You should add these here to trigger an error if they are missing
+         */
+        factory(jQuery);
+    }
+
+
+// The actual plugin with its dependencies
+}(function ($) {
 
     'use strict';
 
@@ -39,10 +62,13 @@
         propertyName: 'value'
     };
 
+    /*
+        Store often used elements because of performance
+     */
     /**
      * @type {!jQuery}
      */
-    var $doc = $(doc);
+    var $doc = $(document);
 
 
     /**
@@ -199,7 +225,7 @@
      */
     // Try using a global config object
     try {
-        $.extend(defOpts, win.config[PLUGIN_NAME]);
+        $.extend(defOpts, window.config[PLUGIN_NAME]);
     } catch (e) {
     }
 
@@ -222,9 +248,4 @@
         $doc.find('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 
-
-/*
-    The dependencies which are imported to the plugin wrapper.
-    You should add other plugins etc. here to trigger an error if they are missing
- */
-})(jQuery, window, document);
+}));
