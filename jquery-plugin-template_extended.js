@@ -348,7 +348,7 @@
         childList: true,
         subtree: true
     });
-    $doc.on('ready', function () {
+    $('ready', function () {
         $doc.find('[data-' + PLUGIN_NAME + ']')[PLUGIN_NAME]();
     });
 
